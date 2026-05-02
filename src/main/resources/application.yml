@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: ml-payment-recovery-dashboard
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:h2:mem:mlpayments;MODE=PostgreSQL;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  h2:
+    console:
+      enabled: true
+
+mercadopago:
+  base-url: ${MP_BASE_URL:https://api.mercadopago.com}
+  token: ${MP_TOKEN:}
+  mock-enabled: ${MP_MOCK_ENABLED:true}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
