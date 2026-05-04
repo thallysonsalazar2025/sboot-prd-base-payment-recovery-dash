@@ -17,13 +17,27 @@ public class PaymentController {
     private final RetryService retryService;
 
     @PostMapping("/create")
-    public PaymentDtos.CreatePaymentResponse create(@Valid @RequestBody PaymentDtos.CreatePaymentRequest request){ return paymentService.create(request); }
+    public PaymentDtos.CreatePaymentResponse create(@Valid @RequestBody PaymentDtos.CreatePaymentRequest request) {
+        return paymentService.create(request);
+    }
+
     @GetMapping("/{id}")
-    public PaymentDtos.PaymentStatusResponse get(@PathVariable Long id){ return paymentService.get(id); }
+    public PaymentDtos.PaymentStatusResponse get(@PathVariable("id") Long id) {
+        return paymentService.get(id);
+    }
+
     @GetMapping("/metrics")
-    public PaymentDtos.MetricsResponse metrics(){ return metricsService.metrics(); }
+    public PaymentDtos.MetricsResponse metrics() {
+        return metricsService.metrics();
+    }
+
     @PostMapping("/{id}/retry")
-    public PaymentDtos.CreatePaymentResponse retry(@PathVariable Long id){ return retryService.retry(id); }
+    public PaymentDtos.CreatePaymentResponse retry(@PathVariable("id") Long id) {
+        return retryService.retry(id);
+    }
+
     @GetMapping("/methods")
-    public PaymentDtos.PaymentMethodsResponse methods(){ return paymentService.methods(); }
+    public PaymentDtos.PaymentMethodsResponse methods() {
+        return paymentService.methods();
+    }
 }

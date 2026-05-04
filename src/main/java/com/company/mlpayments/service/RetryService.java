@@ -8,5 +8,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class RetryService {
     private final PaymentService paymentService;
-    public PaymentDtos.CreatePaymentResponse retry(Long id){ return paymentService.retry(id); }
+
+    public PaymentDtos.CreatePaymentResponse retry(Long id) {
+        return paymentService.retry(id);
+    }
 }

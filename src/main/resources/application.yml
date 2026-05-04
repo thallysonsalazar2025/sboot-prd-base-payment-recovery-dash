@@ -18,8 +18,9 @@ spring:
 
 mercadopago:
   base-url: ${MP_BASE_URL:https://api.mercadopago.com}
-  token: ${MP_TOKEN:}
-  mock-enabled: ${MP_MOCK_ENABLED:true}
+  token: ${MP_TOKEN:APP_USR-7176507038713643-050417-3b741e2758df4536e3c6185ce6155bf7-3379089790}
+  public-key: ${MP_PUBLIC_KEY:APP_USR-944360ae-5621-4465-824d-991a4e9061d3}
+  mock-enabled: ${MP_MOCK_ENABLED:false}
 
 management:
   endpoints:
@@ -39,4 +40,7 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
+    show-sql: false
+  flyway:
+    enabled: true

@@ -14,6 +14,10 @@ public class CorrelationIdFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         String id = ((HttpServletRequest) request).getHeader("X-Correlation-Id");
         MDC.put("correlationId", id == null ? UUID.randomUUID().toString() : id);
-        try { chain.doFilter(request, response);} finally { MDC.clear(); }
+        try {
+            chain.doFilter(request, response);
+        } finally {
+            MDC.clear();
+        }
     }
 }
