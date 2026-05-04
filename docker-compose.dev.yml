@@ -1,0 +1,116 @@
+name: payroll-recovery-stack
+
+x-spring-service: &spring-service
+  restart: unless-stopped
+  networks:
+    - payroll-net
+  environment:
+    SPRING_PROFILES_ACTIVE: docker
+    SPRING_RABBITMQ_HOST: rabbitmq
+    SPRING_RABBITMQ_PORT: 5672
+    SPRING_RABBITMQ_USERNAME: ${RABBITMQ_DEFAULT_USER:-payroll}
+    SPRING_RABBITMQ_PASSWORD: ${RABBITMQ_DEFAULT_PASS:-payroll}
+
+services:
+  frontend:
+    build:
+      context: ${FRONTEND_PATH}
+      dockerfile: Dockerfile
+    container_name: frontend-payment-recovery
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    environment:
+      VITE_API_GATEWAY_URL: http://api-gateway:8080
+    depends_on:
+      api-gateway:
+        condition: service_started
+    networks:
+      - payroll-net
+
+  backend-dashboard:
+    <<: *spring-service
+    image: ${BACKEND_DASHBOARD_IMAGE:-sboot-prd-base-payment-recovery-dash:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: backend-payment-recovery
+    ports:
+      - "${BACKEND_DASHBOARD_PORT:-8080}:8080"
+
+  payroll-query-service:
+    <<: *spring-service
+    image: ${PAYROLL_QUERY_IMAGE:-ghcr.io/company/sboot-payroll-query-service:latest}
+
+  payroll-orchestrator-service:
+    <<: *spring-service
+    image: ${PAYROLL_ORCHESTRATOR_IMAGE:-ghcr.io/company/boot-payroll-orchestrator-service:latest}
+
+  payroll-generation-request-publisher:
+    <<: *spring-service
+    image: ${PAYROLL_REQUEST_PUBLISHER_IMAGE:-ghcr.io/company/payroll-generation-request-publisher:latest}
+
+  security-auth-service:
+    <<: *spring-service
+    image: ${SECURITY_AUTH_IMAGE:-ghcr.io/company/sboot-security-base-auth-service:latest}
+
+  payroll-generation-processor:
+    <<: *spring-service
+    image: ${PAYROLL_PROCESSOR_IMAGE:-ghcr.io/company/sboot-payroll-generation-processor:latest}
+
+  api-gateway:
+    <<: *spring-service
+    image: ${API_GATEWAY_IMAGE:-ghcr.io/company/sboot-security-base-api-gateway:latest}
+    ports:
+      - "${API_GATEWAY_PORT:-8081}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      AUTH_SERVICE_URL: http://security-auth-service:8080
+      PAYROLL_ORCHESTRATOR_URL: http://payroll-orchestrator-service:8080
+      PAYROLL_QUERY_URL: http://payroll-query-service:8080
+
+  payroll-calculation-service:
+    <<: *spring-service
+    image: ${PAYROLL_CALCULATION_IMAGE:-ghcr.io/company/sboot-payroll-calculation-service:latest}
+
+  data-employee-service:
+    <<: *spring-service
+    image: ${DATA_EMPLOYEE_IMAGE:-ghcr.io/company/sboot-data-employe-serice:latest}
+
+  data-company-service:
+    <<: *spring-service
+    image: ${DATA_COMPANY_IMAGE:-ghcr.io/company/sboot-data-company-serice:latest}
+
+  payroll-events-service:
+    <<: *spring-service
+    image: ${PAYROLL_EVENTS_IMAGE:-ghcr.io/company/sboot-payroll-events-service:latest}
+
+  payroll-validation-service:
+    <<: *spring-service
+    image: ${PAYROLL_VALIDATION_IMAGE:-ghcr.io/company/sboot-payroll-validation-service:latest}
+
+  time-tracking-integration-service:
+    <<: *spring-service
+    image: ${TIME_TRACKING_IMAGE:-ghcr.io/company/sboot-time-tracking-integration-service:latest}
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-payroll}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-payroll}
+    ports:
+      - "${RABBITMQ_PORT:-5672}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT:-15672}:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 15s
+      timeout: 10s
+      retries: 8
+    networks:
+      - payroll-net
+
+networks:
+  payroll-net:
+    driver: bridge

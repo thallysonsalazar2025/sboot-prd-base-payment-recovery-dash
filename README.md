@@ -76,3 +76,44 @@ Para rodar os testes unitários e de integração:
 ```bash
 mvn test
 ```
+
+## 🧩 Ambiente de desenvolvimento full-stack (1 comando)
+Este repositório agora possui um `docker-compose.dev.yml` para subir **frontend + backend + serviços de folha + RabbitMQ** em um único comando, sem copiar arquivos do frontend para cá.
+
+### Pré-requisitos
+1. Docker Desktop / Docker Engine + Docker Compose v2.
+2. Garantir que o frontend exista localmente em:
+   - `C:\Workspace\react-payment-recovery-ashboard`
+
+### Passo a passo
+```bash
+cp .env.dev.example .env.dev
+# ajuste as imagens e portas se necessário
+```
+
+Em Linux/macOS/WSL, ajuste `FRONTEND_PATH` para um path válido no host (ex.: `/mnt/c/Workspace/react-payment-recovery-ashboard`).
+
+### Deploy único
+```bash
+docker compose --env-file .env.dev -f docker-compose.dev.yml up -d --build
+```
+
+### Endpoints esperados
+- Frontend: `http://localhost:3000`
+- Backend dashboard: `http://localhost:8080`
+- API Gateway: `http://localhost:8081`
+- RabbitMQ Management: `http://localhost:15672`
+
+### Teste E2E sugerido
+1. Acesse o frontend e execute o fluxo que dispara a geração/consulta de folha.
+2. Valide chamadas saindo para o API Gateway (`http://localhost:8081`).
+3. Verifique filas no RabbitMQ (`http://localhost:15672`).
+4. Inspecione logs de orquestração:
+```bash
+docker compose --env-file .env.dev -f docker-compose.dev.yml logs -f api-gateway payroll-orchestrator-service payroll-events-service
+```
+
+### Shutdown
+```bash
+docker compose --env-file .env.dev -f docker-compose.dev.yml down
+```
